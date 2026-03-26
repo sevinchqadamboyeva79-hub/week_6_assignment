@@ -5,13 +5,12 @@ def track_change(func):
         return result
     return wrapper
 
-
 class Ingredient:
-    _all_ingredients = []
+    _all_ingredients = [] 
     def __init__(self, name, cost_per_unit, units):
         self.name = name
-        self.cost_per_unit = float(cost_per_unit)
-        self.units = int(units)
+        self.cost_per_unit = cost_per_unit
+        self.units = units
         Ingredient._all_ingredients.append(self)
 
     @track_change
@@ -32,20 +31,34 @@ class Ingredient:
 
     @classmethod
     def from_order_form(cls, entry):
-        name, cost, units = entry.split(":")
-        return cls(name, float(cost), int(units))
+        try:
+            parts = entry.split(":")
+            name = parts[0]
+            cost = float(parts[1])
+            units = int(parts[2])
+            return cls(name, cost, units)
+        except Exception as e:
+            print(f"Invalid entry format: {entry}")
+            return None
 
     @staticmethod
     def is_valid_code(code):
-        return code.startswith("ING-") and code[4:].isdigit()
+        if len(code) < 5:
+            return False
+        if code[:4] != "ING-":
+            return False
+        for ch in code[4:]:
+            if ch < '0' or ch > '9':
+                return False
+        return True
 
     @classmethod
     def kitchen_value(cls):
-        total = sum(item.total_cost() for item in cls._all_ingredients)
-        return float(round(total, 2))
+        total = 0
+        for ingredient in cls._all_ingredients:
+            total += ingredient.total_cost()
+        return (round(total, 2))
 
-
-# Input
 i1 = Ingredient("Rice", 3.20, 60)
 i2 = Ingredient.from_order_form("Olive Oil:15.75:8")
 
